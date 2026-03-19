@@ -4,6 +4,7 @@ export { default as SonoEditor } from "./SonoEditor"
 // File tree
 export { default as FileTree } from "./tree/FileTree"
 export type { TreeFile, FileTreeProps } from "./tree/FileTree"
+export { useFileTreeStore } from "./tree/store"
 
 // Types
 export type { Comment, Reply, Anchor, SonoEditorProps } from "./types"

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useFileTreeStore } from "./store"
 
 export interface TreeFile {
   id: string
@@ -10,6 +10,7 @@ export interface FileTreeProps {
   files: TreeFile[]
   activePath?: string | null
   title?: string
+  rootName?: string
   theme?: "dark" | "light"
   onFileSelect?: (file: TreeFile) => void
 }
@@ -100,24 +101,21 @@ function TreeItem({
   node,
   depth,
   activePath,
-  expanded,
-  onToggle,
   onFileSelect,
 }: {
   node: TreeNode
   depth: number
   activePath?: string | null
-  expanded: Set<string>
-  onToggle: (path: string) => void
   onFileSelect?: (file: TreeFile) => void
 }) {
-  const isOpen = expanded.has(node.path)
+  const isOpen = useFileTreeStore((s) => s.expanded.has(node.path))
+  const toggle = useFileTreeStore((s) => s.toggle)
   const isActive = !node.isDir && node.path === activePath
 
   function handleClick(e: React.MouseEvent) {
     e.stopPropagation()
     if (node.isDir) {
-      onToggle(node.path)
+      toggle(node.path)
     } else if (node.file && onFileSelect) {
       onFileSelect(node.file)
     }
@@ -141,8 +139,6 @@ function TreeItem({
               node={child}
               depth={depth + 1}
               activePath={activePath}
-              expanded={expanded}
-              onToggle={onToggle}
               onFileSelect={onFileSelect}
             />
           ))}
@@ -154,36 +150,44 @@ function TreeItem({
 
 // ─── FileTree component ─────────────────────────────────────
 
-export default function FileTree({ files, activePath, title, onFileSelect }: FileTreeProps) {
+export default function FileTree({ files, activePath, title, rootName, onFileSelect }: FileTreeProps) {
   const tree = buildTree(files)
+  const rootOpen = useFileTreeStore((s) => s.expanded.has("__root__"))
+  const toggle = useFileTreeStore((s) => s.toggle)
 
-  // Collapse all folders by default
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
-
-  const handleToggle = useCallback((path: string) => {
-    setExpanded(prev => {
-      const next = new Set(prev)
-      if (next.has(path)) next.delete(path)
-      else next.add(path)
-      return next
-    })
-  }, [])
+  const treeItems = tree.map(node => (
+    <TreeItem
+      key={node.path}
+      node={node}
+      depth={rootName ? 1 : 0}
+      activePath={activePath}
+      onFileSelect={onFileSelect}
+    />
+  ))
 
   return (
     <div className="sono-file-tree">
-      {title && <div className="sono-tree-title">{title}</div>}
+      {title && !rootName && <div className="sono-tree-title">{title}</div>}
       <div className="sono-tree-list">
-        {tree.map(node => (
-          <TreeItem
-            key={node.path}
-            node={node}
-            depth={0}
-            activePath={activePath}
-            expanded={expanded}
-            onToggle={handleToggle}
-            onFileSelect={onFileSelect}
-          />
-        ))}
+        {rootName ? (
+          <div className="sono-tree-node">
+            <div
+              className="sono-tree-row dir sono-tree-root"
+              style={{ paddingLeft: "8px" }}
+              onClick={() => toggle("__root__")}
+            >
+              <ChevronIcon open={rootOpen} />
+              <span className="sono-tree-label">{rootName}</span>
+            </div>
+            {rootOpen && (
+              <div className="sono-tree-children">
+                {treeItems}
+              </div>
+            )}
+          </div>
+        ) : (
+          treeItems
+        )}
       </div>
     </div>
   )
