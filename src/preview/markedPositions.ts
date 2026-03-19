@@ -330,7 +330,7 @@ function buildPositionRenderer(): any {
   }
 
   renderer.codespan = function (token: any) {
-    return `<code${posAttrs(token)}>${token.text}</code>`
+    return `<code${posAttrs(token)}>${escapeHtml(token.text)}</code>`
   }
 
   renderer.del = function (token: any) {

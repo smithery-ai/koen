@@ -7,6 +7,7 @@
 import { useEffect, useRef, useMemo, useState, useCallback, useLayoutEffect, forwardRef } from "react"
 import Avatar from "boring-avatars"
 import { marked } from "marked"
+import { useWebHaptics } from "web-haptics/react"
 import { parseWithPositions, domRangeToSourceRange, clearHighlights } from "./markedPositions"
 import { createAnchor as createAnchorFn } from "../comments/anchoring"
 import { computePopoverPositions } from "../comments/popoverPositioning"
@@ -55,13 +56,33 @@ export default function MarkdownPreview({
   const contentRef = useRef<HTMLDivElement>(null)
   const lastHtmlRef = useRef<string>("")
   const lastThemeRef = useRef<string>("")
+  const haptic = useWebHaptics()
   const [pillPos, setPillPos] = useState<{ top: number; left: number; from: number; to: number } | null>(null)
   const [commentPositions, setCommentPositions] = useState<{ commentId: string; top: number }[]>([])
   const [draftComment, setDraftComment] = useState<{ from: number; to: number; top: number } | null>(null)
   const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null)
   const [popoverHoveredId, setPopoverHoveredId] = useState<string | null>(null)
+  const [mobileSheetCommentId, setMobileSheetCommentId] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth <= 960)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 960)
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
   const [hiddenCommentIds, setHiddenCommentIds] = useState<Set<string>>(new Set())
   const [exitingCommentIds, setExitingCommentIds] = useState<Set<string>>(new Set())
+
+  // Skip popover entrance animation on file navigation (content change)
+  const prevContentRef = useRef(content)
+  const [skipPopoverAnim, setSkipPopoverAnim] = useState(false)
+  useEffect(() => {
+    if (prevContentRef.current !== content) {
+      prevContentRef.current = content
+      setSkipPopoverAnim(true)
+      requestAnimationFrame(() => setSkipPopoverAnim(false))
+    }
+  }, [content])
   const html = useMemo(() => parseWithPositions(content || ""), [content])
 
   // Internal highlight store — persists across re-renders, drives DOM mutations
@@ -202,6 +223,11 @@ export default function MarkdownPreview({
       if (hl) {
         const id = hl.getAttribute("data-comment-id")
         if (id) {
+          // Mobile: open bottom sheet instead of toggling margin popover
+          if (isMobile) {
+            setMobileSheetCommentId(prev => prev === id ? null : id)
+            return
+          }
           setHiddenCommentIds(prev => {
             if (prev.has(id)) {
               // Show: remove from hidden immediately
@@ -422,6 +448,7 @@ export default function MarkdownPreview({
               e.stopPropagation()
               setDraftComment({ from: pillPos.from, to: pillPos.to, top: pillPos.top + 36 + 4 })
               setPillPos(null)
+              haptic.trigger("light")
             }}
             onTouchEnd={(e) => {
               e.preventDefault()
@@ -480,6 +507,7 @@ export default function MarkdownPreview({
               top={item.top}
               highlighted={hoveredCommentId === item.comment.id}
               exiting={exitingCommentIds.has(item.comment.id)}
+              skipAnimation={skipPopoverAnim}
               onDelete={onDeleteComment}
               onAddReply={onAddReply}
               onHover={setPopoverHoveredId}
@@ -487,6 +515,69 @@ export default function MarkdownPreview({
           )
         ))}
       </div>
+      {isMobile && mobileSheetCommentId && (() => {
+        const comment = comments.find(c => c.id === mobileSheetCommentId)
+        if (!comment) return null
+        return (
+          <>
+            <div className="comment-bottom-sheet-backdrop" onClick={() => setMobileSheetCommentId(null)} />
+            <div className="comment-bottom-sheet">
+              <div className="comment-bottom-sheet-handle" />
+              <div className="comment-thread-scroll">
+                <div className="comment-thread-item">
+                  <div className="comment-thread-line">
+                    <div className="comment-avatar">
+                      <Avatar size={20} name={comment.author || "?"} variant="beam" colors={COMMENT_COLORS} />
+                    </div>
+                    <div className="comment-meta">
+                      <span className="comment-name">{comment.author}</span>
+                      {comment.createdAt && <span className="comment-time">{getTimeAgo(comment.createdAt)}</span>}
+                    </div>
+                  </div>
+                  <div className="comment-thread-content">
+                    {comment.body && <TruncatedBody html={marked.parse(comment.body) as string} />}
+                  </div>
+                </div>
+                {comment.replies?.map(reply => (
+                  <div key={reply.id} className="comment-thread-item">
+                    <div className="comment-thread-line">
+                      <div className="comment-avatar">
+                        <Avatar size={20} name={reply.author || "?"} variant="beam" colors={COMMENT_COLORS} />
+                      </div>
+                      <div className="comment-meta">
+                        <span className="comment-name">{reply.author}</span>
+                        <span className="comment-time">{getTimeAgo(reply.createdAt)}</span>
+                      </div>
+                    </div>
+                    <div className="comment-thread-content">
+                      <TruncatedBody html={marked.parse(reply.body) as string} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="comment-reply-box">
+                <textarea className="comment-reply-input" placeholder="Reply..." rows={1}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      const val = (e.target as HTMLTextAreaElement).value.trim()
+                      if (val) { onAddReply(comment.id, val); (e.target as HTMLTextAreaElement).value = "" }
+                    }
+                  }}
+                />
+                <button className="comment-send" onClick={e => {
+                  const input = (e.currentTarget as HTMLElement).previousElementSibling as HTMLTextAreaElement
+                  if (input?.value.trim()) { onAddReply(comment.id, input.value.trim()); input.value = "" }
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 11V3M7 3L4 6M7 3L10 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }
@@ -499,6 +590,7 @@ interface PreviewPopoverProps {
   top: number
   highlighted: boolean
   exiting?: boolean
+  skipAnimation?: boolean
   onDelete: (id: string) => void
   onAddReply: (commentId: string, body: string) => void
   onHover: (id: string | null) => void
@@ -534,18 +626,20 @@ function TruncatedBody({ html, plain }: { html?: string; plain?: string }) {
 }
 
 const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
-  comment, content: _content, top, highlighted, exiting, onDelete, onAddReply, onHover,
+  comment, content: _content, top, highlighted, exiting, skipAnimation, onDelete, onAddReply, onHover,
 }, ref) => {
   const [replyText, setReplyText] = useState("")
   const [expanded, setExpanded] = useState(false)
   const [absTop, setAbsTop] = useState(0)
   const localRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const haptic = useWebHaptics()
 
   const handleReply = () => {
     if (!replyText.trim()) return
     onAddReply(comment.id, replyText.trim())
     setReplyText("")
+    haptic.trigger("light")
   }
 
   const [absLeft, setAbsLeft] = useState(0)
@@ -556,6 +650,9 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
       const rect = localRef.current.getBoundingClientRect()
       setAbsTop(rect.top)
       setAbsLeft(rect.left)
+      haptic.trigger("medium")
+    } else {
+      haptic.trigger("light")
     }
     setExpanded(!expanded)
   }
@@ -570,7 +667,7 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
   return (
     <div
       ref={setRefs}
-      className={`preview-comment-popover${highlighted ? " highlighted" : ""}${exiting ? " exiting" : ""}${expanded ? " expanded" : ""}`}
+      className={`preview-comment-popover${skipAnimation ? " no-animate" : ""}${highlighted ? " highlighted" : ""}${exiting ? " exiting" : ""}${expanded ? " expanded" : ""}`}
       style={{ top, "--popover-top": `${top}px`, "--popover-top-abs": `${absTop}px`, "--popover-left-abs": `${absLeft}px` } as React.CSSProperties}
       onMouseEnter={() => onHover(comment.id)}
       onMouseLeave={() => onHover(null)}
