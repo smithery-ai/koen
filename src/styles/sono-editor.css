@@ -163,38 +163,48 @@
   background: var(--sidebar-bg);
 }
 
-/* ─── Expand button ──────────────────────────────────────── */
+/* ─── Popover action buttons ─────────────────────────────── */
 
-.popover-expand-btn {
+.popover-actions {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 2;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.preview-comment-popover:hover .popover-actions,
+.preview-comment-popover.expanded .popover-actions {
+  opacity: 1;
+}
+
+.popover-action-btn {
   background: none;
   border: none;
   color: var(--icon-fg, #6A6A70);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  opacity: 0;
-  transition: opacity 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.preview-comment-popover:hover .popover-expand-btn,
-.preview-comment-popover.expanded .popover-expand-btn {
-  opacity: 1;
-}
-
-.popover-expand-btn:hover {
+.popover-action-btn:hover {
   background: rgba(255, 255, 255, 0.06);
   color: var(--editor-fg);
 }
 
-.popover-expand-btn:active {
+.popover-action-btn:active {
   transform: scale(0.9);
+}
+
+.popover-delete-btn:hover {
+  color: #e05050;
 }
 
 /* ─── Expanded popover ───────────────────────────────────── */

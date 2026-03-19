@@ -672,11 +672,21 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
       onMouseEnter={() => onHover(comment.id)}
       onMouseLeave={() => onHover(null)}
     >
-      <button
-        className="popover-expand-btn"
-        title={expanded ? "Collapse" : "Expand"}
-        onClick={handleExpand}
-      >
+      <div className="popover-actions">
+        <button
+          className="popover-action-btn popover-delete-btn"
+          title="Delete"
+          onClick={() => { haptic.trigger("warning"); onDelete(comment.id) }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </button>
+        <button
+          className="popover-action-btn popover-expand-btn"
+          title={expanded ? "Collapse" : "Expand"}
+          onClick={handleExpand}
+        >
         {expanded ? (
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M5 1L5 5H1M9 13L9 9H13M5 5L1 1M9 9L13 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -686,7 +696,8 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
             <path d="M1 5V1H5M13 9V13H9M1 1L5 5M13 13L9 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
-      </button>
+        </button>
+      </div>
       <div className="comment-thread-scroll">
         <div className="comment-thread-item">
           <div className="comment-thread-line">
