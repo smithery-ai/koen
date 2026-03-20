@@ -92,7 +92,7 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
             theme={theme}
             widgets={widgets}
             onAddComment={handlePreviewAddComment}
-            onDeleteComment={(id) => onDeleteComment?.(id)}
+            onDeleteComment={onDeleteComment}
             onAddReply={(commentId, body) => onAddReply?.(commentId, body)}
             onLinkClick={onLinkClick}
           />
@@ -126,7 +126,7 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
             content={content}
             activeCommentId={activeCommentId}
             onActiveCommentChange={handleActiveChange}
-            onDeleteComment={(id) => onDeleteComment?.(id)}
+            onDeleteComment={onDeleteComment}
             onSubmitBody={handleSubmitBody}
             onAddReply={(commentId, body) => onAddReply?.(commentId, body)}
           />

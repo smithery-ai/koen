@@ -163,17 +163,17 @@ describe("widget plugin lifecycle", () => {
     // Unknown type
     el.innerHTML = `<div data-widget-spec='${JSON.stringify({ widgetId: "w1", type: "nope" })}'></div>`
     hydrateWidgets(el, "dark", registry)
-    expect(el.textContent).toContain("Unknown widget type: nope")
+    expect(el.textContent).toContain("nope widget unavailable")
 
     // Invalid JSON
     el.innerHTML = '<div data-widget-spec="not-json"></div>'
     hydrateWidgets(el, "dark", registry)
-    expect(el.textContent).toContain("Widget error:")
+    expect(el.textContent).toContain("widget unavailable")
   })
 
   it("getDefaultWidgets returns all default widgets", () => {
     const defaults = getDefaultWidgets()
-    expect(defaults.map(d => d.type)).toEqual(["chart", "mermaid", "diff", "globe", "katex", "table", "embed", "excalidraw", "map", "timeline", "calendar"])
+    expect(defaults.map(d => d.type)).toEqual(["chart", "mermaid", "diff", "globe", "katex", "table", "embed", "excalidraw", "map", "timeline", "calendar", "html"])
   })
 })
 
