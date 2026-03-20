@@ -36,6 +36,7 @@ export {
   mapPlugin,
   timelinePlugin,
   calendarPlugin,
+  htmlPlugin,
 } from "engei-widgets"
 export type { WidgetSpec, WidgetHydrator } from "engei-widgets"
 
