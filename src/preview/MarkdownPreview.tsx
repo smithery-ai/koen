@@ -47,6 +47,7 @@ export default function MarkdownPreview({
   const [commentPositions, setCommentPositions] = useState<{ commentId: string; top: number }[]>([])
   const [draftComment, setDraftComment] = useState<{ from: number; to: number; top: number } | null>(null)
   const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null)
+  const [expandedCommentId, setExpandedCommentId] = useState<string | null>(null)
   // popoverHoveredId is managed imperatively via updatePopoverHover (no state needed)
   const [mobileSheetCommentId, setMobileSheetCommentId] = useState<string | null>(null)
   const isMobileRef = useRef(typeof window !== "undefined" && window.innerWidth <= 960)
@@ -503,10 +504,12 @@ export default function MarkdownPreview({
               top={item.top}
               highlighted={hoveredCommentId === item.comment.id}
               exiting={exitingCommentIds.has(item.comment.id)}
+              dimmed={expandedCommentId !== null && expandedCommentId !== item.comment.id}
               skipAnimation={skipPopoverAnim}
               onDelete={onDeleteComment}
               onAddReply={onAddReply}
               onHover={updatePopoverHover}
+              onExpandChange={(expanded) => setExpandedCommentId(expanded ? item.comment.id : null)}
             />
           )
         ))}
@@ -586,10 +589,12 @@ interface PreviewPopoverProps {
   top: number
   highlighted: boolean
   exiting?: boolean
+  dimmed?: boolean
   skipAnimation?: boolean
   onDelete: (id: string) => void
   onAddReply: (commentId: string, body: string) => void
   onHover: (id: string | null) => void
+  onExpandChange?: (expanded: boolean) => void
 }
 
 function TruncatedBody({ html, plain }: { html?: string; plain?: string }) {
@@ -622,7 +627,7 @@ function TruncatedBody({ html, plain }: { html?: string; plain?: string }) {
 }
 
 const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
-  comment, content: _content, top, highlighted, exiting, skipAnimation, onDelete, onAddReply, onHover,
+  comment, content: _content, top, highlighted, exiting, dimmed, skipAnimation, onDelete, onAddReply, onHover, onExpandChange,
 }, ref) => {
   const [replyText, setReplyText] = useState("")
   const [expanded, setExpanded] = useState(false)
@@ -644,7 +649,9 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
       setAbsTop(rect.top)
       setAbsLeft(rect.left)
     }
-    setExpanded(!expanded)
+    const next = !expanded
+    setExpanded(next)
+    onExpandChange?.(next)
   }
 
   // Merge refs
@@ -657,7 +664,7 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
   return (
     <div
       ref={setRefs}
-      className={`preview-comment-popover${skipAnimation ? " no-animate" : ""}${highlighted ? " highlighted" : ""}${exiting ? " exiting" : ""}${expanded ? " expanded" : ""}`}
+      className={`preview-comment-popover${skipAnimation ? " no-animate" : ""}${highlighted ? " highlighted" : ""}${exiting ? " exiting" : ""}${expanded ? " expanded" : ""}${dimmed ? " dimmed" : ""}`}
       style={{ top, "--popover-top": `${top}px`, "--popover-top-abs": `${absTop}px`, "--popover-left-abs": `${absLeft}px` } as React.CSSProperties}
       onMouseEnter={() => onHover(comment.id)}
       onMouseLeave={() => onHover(null)}

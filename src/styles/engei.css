@@ -264,6 +264,12 @@
   to { opacity: 0; transform: translateY(4px) scale(0.97); }
 }
 
+.preview-comment-popover.dimmed {
+  opacity: 0 !important;
+  pointer-events: none;
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 1, 1);
+}
+
 .preview-comment-popover.submitted {
   animation: popover-settle 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
