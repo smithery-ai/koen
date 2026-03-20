@@ -5,7 +5,7 @@
   --editor-bg: #1a1816;
   --editor-fg: #e8e6e3;
   --editor-cursor: #e8e6e3;
-  --editor-selection: rgba(200, 170, 130, 0.15);
+  --editor-selection: rgba(193, 95, 60, 0.15);
   --editor-line-highlight: rgba(255, 255, 255, 0.03);
   --editor-line-number: #4a4540;
   --editor-line-number-active: #8a8078;
@@ -26,7 +26,7 @@
   --editor-bg: #faf8f5;
   --editor-fg: #2a2520;
   --editor-cursor: #2a2520;
-  --editor-selection: rgba(100, 80, 60, 0.12);
+  --editor-selection: rgba(193, 95, 60, 0.12);
   --editor-line-highlight: rgba(0, 0, 0, 0.03);
   --editor-line-number: #b0a898;
   --editor-line-number-active: #6a6058;
