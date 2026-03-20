@@ -19,15 +19,25 @@ export { commentField, setComments, addComment, removeComment, getCommentRanges 
 // Markdown utilities (for custom preview consumers)
 export { parseWithPositions, domRangeToSourceRange, wrapSourceRange, clearHighlights } from "./preview/markedPositions"
 
-// Widget system
-export { hydrateWidgets, buildWidgetRegistry, buildLangMap, getDefaultWidgets } from "./widgets/registry"
-export type { WidgetSpec, WidgetHydrator } from "./widgets/registry"
+// Widget system (re-exported from engei-widgets)
+export {
+  hydrateWidgets,
+  buildWidgetRegistry,
+  buildLangMap,
+  getDefaultWidgets,
+  chartPlugin,
+  mermaidPlugin,
+  diffPlugin,
+  globePlugin,
+  katexPlugin,
+  tablePlugin,
+  embedPlugin,
+  excalidrawPlugin,
+  mapPlugin,
+  timelinePlugin,
+  calendarPlugin,
+} from "engei-widgets"
+export type { WidgetSpec, WidgetHydrator } from "engei-widgets"
 
-// Built-in widget plugins (pure objects — no side effects)
-export { chartPlugin } from "./widgets/ChartWidget"
-export { mermaidPlugin } from "./widgets/MermaidWidget"
-export { diffPlugin } from "./widgets/DiffWidget"
-export { globePlugin } from "./widgets/GlobeWidget"
-
-// Styles — import "koen/styles" in your app
-import "./styles/koen.css"
+// Styles — import "engei/styles" in your app
+import "./styles/engei.css"

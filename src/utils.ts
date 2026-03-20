@@ -2,17 +2,17 @@
 
 export const COMMENT_COLORS = ["#C15F3C", "#7aa874", "#6a8ac0", "#c4a050", "#a070b0", "#c07070", "#50a0a0", "#b08050"]
 
+const units: [number, string][] = [[86400, "d"], [3600, "h"], [60, "m"]]
+
 export function getTimeAgo(isoStr: string): string {
   if (!isoStr) return ""
   const ts = isoStr.endsWith("Z") || isoStr.includes("+") ? isoStr : isoStr + "Z"
-  const diff = Date.now() - new Date(ts).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return "just now"
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
+  const secs = (Date.now() - new Date(ts).getTime()) / 1000
+
+  for (const [threshold, label] of units) {
+    if (secs >= threshold) return `${Math.floor(secs / threshold)}${label} ago`
+  }
+  return "just now"
 }
 
 export function escapeHtml(str: string): string {

@@ -6,7 +6,7 @@ import dts from "vite-plugin-dts"
 import { cloudflare } from "@cloudflare/vite-plugin";
 
 export default defineConfig({
-  plugins: [react(), dts({ rollupTypes: true }), cloudflare()],
+  plugins: [react(), dts({ rollupTypes: true, exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test-setup.ts"] }), cloudflare()],
   test: {
     environment: "jsdom",
     globals: true,
@@ -16,10 +16,10 @@ export default defineConfig({
     lib: {
       entry: "src/index.ts",
       formats: ["es"],
-      fileName: "koen",
+      fileName: "engei",
     },
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
+      external: ["react", "react-dom", "react/jsx-runtime", "engei-widgets"],
     },
   },
 })

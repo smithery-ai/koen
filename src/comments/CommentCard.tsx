@@ -6,7 +6,7 @@
 import { useState, useRef, useEffect } from "react"
 import Avatar from "boring-avatars"
 import { renderMarkdown } from "../sanitize"
-import { useWebHaptics } from "web-haptics/react"
+
 import type { Comment, Reply } from "../types"
 import { COMMENT_COLORS, getTimeAgo } from "../utils"
 
@@ -33,8 +33,6 @@ export default function CommentCard({
   const [isNew, setIsNew] = useState(!comment.body)
   const [newBody, setNewBody] = useState("")
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
-  const haptic = useWebHaptics()
-
   useEffect(() => {
     if (isActive && inputRef.current) {
       inputRef.current.focus()
@@ -45,14 +43,14 @@ export default function CommentCard({
     if (!newBody.trim()) return
     onSubmitBody(comment.id, newBody.trim())
     setIsNew(false)
-    haptic.trigger("success")
+
   }
 
   const handleSubmitReply = () => {
     if (!replyText.trim()) return
     onAddReply(comment.id, replyText.trim())
     setReplyText("")
-    haptic.trigger("light")
+
   }
 
   const handleKeyDown = (e: React.KeyboardEvent, onSubmit: () => void) => {
@@ -82,7 +80,7 @@ export default function CommentCard({
             <span className="comment-time">{timeAgo}</span>
           </div>
         </div>
-        <button className="comment-menu" onClick={() => { haptic.trigger("warning"); onDelete(comment.id) }} title="Delete">
+        <button className="comment-menu" onClick={() => onDelete(comment.id)} title="Delete">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
           </svg>

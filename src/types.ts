@@ -1,15 +1,7 @@
-import type { WidgetHydrator } from "./widgets/registry"
+import type { WidgetPlugin as _WidgetPlugin } from "engei-widgets"
+export type { WidgetPlugin, WidgetHydrator, WidgetSpec } from "engei-widgets"
 
-export interface WidgetPlugin {
-  /** Widget type identifier used in the spec's `type` field */
-  type: string
-  /** If set, fenced code blocks with this language become widget placeholders */
-  codeBlockLang?: string
-  /** Convert code block text into a partial spec object. If omitted, text is parsed as JSON. */
-  toSpec?: (text: string, position?: number) => Record<string, any>
-  /** Function that hydrates the widget into a DOM element */
-  hydrate: WidgetHydrator
-}
+type WidgetPlugin = _WidgetPlugin
 
 export interface Anchor {
   exact: string

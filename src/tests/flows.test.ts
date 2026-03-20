@@ -3,12 +3,12 @@
  * with minimal code. Each test covers multiple modules.
  */
 
-import { createAnchor, resolveAnchor, resolveAnchors } from "./comments/anchoring"
-import { parseWithPositions, wrapSourceRange, clearHighlights, domRangeToSourceRange } from "./preview/markedPositions"
-import { applyHighlights } from "./preview/usePreviewHighlights"
-import { buildWidgetRegistry, buildLangMap, hydrateWidgets, getDefaultWidgets } from "./widgets/registry"
-import { renderMarkdown } from "./sanitize"
-import type { WidgetPlugin } from "./types"
+import { createAnchor, resolveAnchor, resolveAnchors } from "../comments/anchoring"
+import { parseWithPositions, wrapSourceRange, clearHighlights, domRangeToSourceRange } from "../preview/markedPositions"
+import { applyHighlights } from "../preview/usePreviewHighlights"
+import { buildWidgetRegistry, buildLangMap, hydrateWidgets, getDefaultWidgets } from "engei-widgets"
+import type { WidgetPlugin } from "engei-widgets"
+import { renderMarkdown } from "../sanitize"
 
 // ─── Journey 1: Comment lifecycle ────────────────────────────
 
@@ -171,9 +171,9 @@ describe("widget plugin lifecycle", () => {
     expect(el.textContent).toContain("Widget error:")
   })
 
-  it("getDefaultWidgets returns chart, mermaid, diff", () => {
+  it("getDefaultWidgets returns all default widgets", () => {
     const defaults = getDefaultWidgets()
-    expect(defaults.map(d => d.type)).toEqual(["chart", "mermaid", "diff", "globe"])
+    expect(defaults.map(d => d.type)).toEqual(["chart", "mermaid", "diff", "globe", "katex", "table", "embed", "excalidraw", "map", "timeline", "calendar"])
   })
 })
 

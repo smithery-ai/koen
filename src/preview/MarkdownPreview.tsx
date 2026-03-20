@@ -7,14 +7,14 @@
 import { useEffect, useRef, useMemo, useState, useCallback, useLayoutEffect, forwardRef } from "react"
 import Avatar from "boring-avatars"
 import { renderMarkdown } from "../sanitize"
-import { useWebHaptics } from "web-haptics/react"
+
 import { parseWithPositions, clearHighlights } from "./markedPositions"
 import { useTextSelection } from "./useTextSelection"
 import { createAnchor as createAnchorFn, resolveAnchor } from "../comments/anchoring"
 import { computePopoverPositions } from "../comments/popoverPositioning"
 import { resolveCollisions } from "../comments/resolveCollisions"
 import { applyHighlights } from "./usePreviewHighlights"
-import { hydrateWidgets, buildWidgetRegistry, buildLangMap, getDefaultWidgets } from "../widgets/registry"
+import { hydrateWidgets, buildWidgetRegistry, buildLangMap, getDefaultWidgets } from "engei-widgets"
 import type { Comment, Anchor, WidgetPlugin } from "../types"
 import { COMMENT_COLORS, getTimeAgo } from "../utils"
 
@@ -44,7 +44,6 @@ export default function MarkdownPreview({
   const contentRef = useRef<HTMLDivElement>(null)
   const lastHtmlRef = useRef<string>("")
   const lastThemeRef = useRef<string>("")
-  const haptic = useWebHaptics()
   const [commentPositions, setCommentPositions] = useState<{ commentId: string; top: number }[]>([])
   const [draftComment, setDraftComment] = useState<{ from: number; to: number; top: number } | null>(null)
   const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null)
@@ -400,7 +399,6 @@ export default function MarkdownPreview({
               e.stopPropagation()
               setDraftComment({ from: pillPos.from, to: pillPos.to, top: pillPos.top + 36 + 4 })
               setPillPos(null)
-              haptic.trigger("light")
             }}
             onTouchEnd={(e) => {
               e.preventDefault()
@@ -585,13 +583,10 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
   const [absTop, setAbsTop] = useState(0)
   const localRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const haptic = useWebHaptics()
-
   const handleReply = () => {
     if (!replyText.trim()) return
     onAddReply(comment.id, replyText.trim())
     setReplyText("")
-    haptic.trigger("light")
   }
 
   const [absLeft, setAbsLeft] = useState(0)
@@ -602,9 +597,6 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
       const rect = localRef.current.getBoundingClientRect()
       setAbsTop(rect.top)
       setAbsLeft(rect.left)
-      haptic.trigger("medium")
-    } else {
-      haptic.trigger("light")
     }
     setExpanded(!expanded)
   }
@@ -627,7 +619,7 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
       <div className="popover-actions">
         <button
           className="popover-action-btn popover-delete-btn"
-          onClick={() => { haptic.trigger("warning"); onDelete(comment.id) }}
+          onClick={() => onDelete(comment.id)}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
