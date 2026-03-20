@@ -5,10 +5,7 @@
  */
 
 import type { WidgetPlugin } from "../types"
-import { chartPlugin } from "./ChartWidget"
-import { mermaidPlugin } from "./MermaidWidget"
-import { diffPlugin } from "./DiffWidget"
-import { globePlugin } from "./GlobeWidget"
+import { chartPlugin, mermaidPlugin, diffPlugin, globePlugin } from "engei-widgets"
 
 export type WidgetHydrator = (
   container: HTMLElement,
