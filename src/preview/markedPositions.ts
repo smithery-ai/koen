@@ -8,6 +8,14 @@ import { marked } from "marked"
 import DOMPurify from "dompurify"
 import hljs from "highlight.js/lib/core"
 import { escapeHtml } from "../utils"
+
+/** Block javascript: and data: URIs in links/images */
+function sanitizeHref(href: string): string {
+  if (!href) return ""
+  const trimmed = href.trim().toLowerCase()
+  if (trimmed.startsWith("javascript:") || trimmed.startsWith("data:") || trimmed.startsWith("vbscript:")) return ""
+  return href
+}
 import javascript from "highlight.js/lib/languages/javascript"
 import typescript from "highlight.js/lib/languages/typescript"
 import python from "highlight.js/lib/languages/python"
@@ -302,7 +310,7 @@ function buildPositionRenderer(widgetLangs?: Map<string, import("../types").Widg
   }
 
   renderer.html = function (token: any) {
-    return token.text
+    return DOMPurify.sanitize(token.text)
   }
 
   renderer.table = function (token: any) {
@@ -343,13 +351,15 @@ function buildPositionRenderer(widgetLangs?: Map<string, import("../types").Widg
   }
 
   renderer.link = function (token: any) {
-    const title = token.title ? ` title="${token.title}"` : ""
-    return `<a href="${token.href}"${title}${posAttrs(token)}>${this.parser.parseInline(token.tokens)}</a>`
+    const href = sanitizeHref(token.href)
+    const title = token.title ? ` title="${escapeHtml(token.title)}"` : ""
+    return `<a href="${escapeHtml(href)}"${title}${posAttrs(token)}>${this.parser.parseInline(token.tokens)}</a>`
   }
 
   renderer.image = function (token: any) {
-    const title = token.title ? ` title="${token.title}"` : ""
-    return `<img src="${token.href}" alt="${token.text}"${title}${posAttrs(token)} />`
+    const href = sanitizeHref(token.href)
+    const title = token.title ? ` title="${escapeHtml(token.title)}"` : ""
+    return `<img src="${escapeHtml(href)}" alt="${escapeHtml(token.text)}"${title}${posAttrs(token)} />`
   }
 
   ;(renderer as any).escape = function (token: any) {
