@@ -264,7 +264,7 @@ function buildPositionRenderer(widgetLangs?: Map<string, import("../types").Widg
 
   renderer.code = function (token: any) {
     // Generic widget blocks: raw JSON spec as placeholder
-    if (token.lang === "widget" || token.lang === "koen-widget") {
+    if (token.lang === "widget") {
       const escapedSpec = escapeHtml(token.text.trim())
       return `<div class="koen-widget-placeholder" data-widget-spec="${escapedSpec}"${posAttrs(token)}></div>\n`
     }
