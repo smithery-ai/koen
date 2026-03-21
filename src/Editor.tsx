@@ -3,14 +3,16 @@
  * Pure UI component: props in, callbacks out.
  */
 
-import { useState, useCallback, useRef, useImperativeHandle, forwardRef } from "react"
+import { useState, useCallback, useRef, useImperativeHandle, forwardRef, lazy, Suspense } from "react"
 import type { EditorView } from "@codemirror/view"
-import CodeMirrorEditor from "./editor/CodeMirrorEditor"
-import CommentPill from "./comments/CommentPill"
-import CommentMargin from "./comments/CommentMargin"
 import MarkdownPreview from "./preview/MarkdownPreview"
 import { createAnchor } from "./comments/anchoring"
 import type { EditorProps } from "./types"
+
+// Lazy-load CodeMirror-dependent components — not needed for preview mode
+const CodeMirrorEditor = lazy(() => import("./editor/CodeMirrorEditor"))
+const CommentPill = lazy(() => import("./comments/CommentPill"))
+const CommentMargin = lazy(() => import("./comments/CommentMargin"))
 
 export interface EditorHandle {
   /** Get the current document content */
@@ -105,35 +107,37 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
 
   return (
     <div className={`koen-editor ${className}`.trim()} data-theme={theme}>
-      <div className="editor-main">
-        <div className="editor-container" style={{ position: "relative" }}>
-          <CodeMirrorEditor
-            content={content}
-            filename={filename}
-            readOnly={readOnly}
-            isDark={isDark}
-            comments={comments}
-            onChange={onChange}
-            onViewReady={setView}
-            onViewDestroy={() => setView(null)}
-          />
-          {commentsVisible && !commentsLocked && view && (
-            <CommentPill view={view} onComment={handleSourceComment} />
+      <Suspense fallback={<div className="editor-container" />}>
+        <div className="editor-main">
+          <div className="editor-container" style={{ position: "relative" }}>
+            <CodeMirrorEditor
+              content={content}
+              filename={filename}
+              readOnly={readOnly}
+              isDark={isDark}
+              comments={comments}
+              onChange={onChange}
+              onViewReady={setView}
+              onViewDestroy={() => setView(null)}
+            />
+            {commentsVisible && !commentsLocked && view && (
+              <CommentPill view={view} onComment={handleSourceComment} />
+            )}
+          </div>
+          {commentsVisible && comments.length > 0 && (
+            <CommentMargin
+              view={view}
+              comments={comments}
+              content={content}
+              activeCommentId={activeCommentId}
+              onActiveCommentChange={handleActiveChange}
+              onDeleteComment={onDeleteComment}
+              onSubmitBody={handleSubmitBody}
+              onAddReply={(commentId, body) => onAddReply?.(commentId, body)}
+            />
           )}
         </div>
-        {commentsVisible && comments.length > 0 && (
-          <CommentMargin
-            view={view}
-            comments={comments}
-            content={content}
-            activeCommentId={activeCommentId}
-            onActiveCommentChange={handleActiveChange}
-            onDeleteComment={onDeleteComment}
-            onSubmitBody={handleSubmitBody}
-            onAddReply={(commentId, body) => onAddReply?.(commentId, body)}
-          />
-        )}
-      </div>
+      </Suspense>
     </div>
   )
 })

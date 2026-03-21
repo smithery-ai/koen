@@ -19,7 +19,13 @@ export default defineConfig({
       fileName: "engei",
     },
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime", "engei-widgets"],
+      external: [
+        "react", "react-dom", "react/jsx-runtime", "engei-widgets",
+        // Externalize CodeMirror so the consuming app can code-split it
+        /^codemirror/,
+        /^@codemirror\//,
+        /^@lezer\//,
+      ],
     },
   },
 })
