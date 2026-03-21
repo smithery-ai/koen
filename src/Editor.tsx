@@ -29,6 +29,7 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
   comments = [],
   activeCommentId = null,
   commentsVisible = true,
+  commentsLocked = false,
   theme = "dark",
   className = "",
   onChange,
@@ -89,6 +90,7 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
             content={content}
             comments={comments}
             commentsVisible={commentsVisible}
+            commentsLocked={commentsLocked}
             theme={theme}
             widgets={widgets}
             onAddComment={handlePreviewAddComment}
@@ -115,7 +117,7 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
             onViewReady={setView}
             onViewDestroy={() => setView(null)}
           />
-          {commentsVisible && view && (
+          {commentsVisible && !commentsLocked && view && (
             <CommentPill view={view} onComment={handleSourceComment} />
           )}
         </div>

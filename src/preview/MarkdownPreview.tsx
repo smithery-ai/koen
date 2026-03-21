@@ -22,6 +22,7 @@ interface Props {
   content: string
   comments: Comment[]
   commentsVisible: boolean
+  commentsLocked?: boolean
   theme?: "dark" | "light"
   widgets?: WidgetPlugin[]
   onAddComment: (anchor: Anchor, body: string) => void
@@ -34,6 +35,7 @@ export default function MarkdownPreview({
   content,
   comments,
   commentsVisible,
+  commentsLocked = false,
   theme = "dark",
   widgets,
   onAddComment,
@@ -450,7 +452,7 @@ export default function MarkdownPreview({
     <div className="md-preview">
       <div className="md-preview-inner">
         <div ref={contentRef} className="md-preview-content" />
-        {commentsVisible && pillPos && !draftComment && (
+        {commentsVisible && !commentsLocked && pillPos && !draftComment && (
           <button
             className={`comment-pill ${pillPos.direction === "below" ? "comment-pill-below" : ""}`}
             aria-label="Add comment on selection"
@@ -505,7 +507,7 @@ export default function MarkdownPreview({
       </div>
       <div className="md-preview-margin">
         {commentsVisible && resolvedPositions.map((item: any) => (
-          item.type === "draft" ? (
+          item.type === "draft" && commentsLocked ? null : item.type === "draft" ? (
             submittedDraft ? (
               <div
                 key="draft-submitted"
@@ -550,7 +552,8 @@ export default function MarkdownPreview({
               exiting={exitingCommentIds.has(item.comment.id)}
               dimmed={expandedCommentId !== null && expandedCommentId !== item.comment.id}
               skipAnimation={skipPopoverAnim}
-              onDelete={onDeleteComment}
+              locked={commentsLocked}
+              onDelete={commentsLocked ? undefined : onDeleteComment}
               onAddReply={onAddReply}
               onHover={updatePopoverHover}
               onExpandChange={(expanded) => setExpandedCommentId(expanded ? item.comment.id : null)}
@@ -598,6 +601,7 @@ export default function MarkdownPreview({
                   </div>
                 ))}
               </div>
+              {!commentsLocked && (
               <div className="comment-reply-box">
                 <textarea className="comment-reply-input" placeholder="Reply..." rows={1}
                   onKeyDown={e => {
@@ -617,6 +621,7 @@ export default function MarkdownPreview({
                   </svg>
                 </button>
               </div>
+              )}
             </div>
           </>
         )
@@ -635,6 +640,7 @@ interface PreviewPopoverProps {
   exiting?: boolean
   dimmed?: boolean
   skipAnimation?: boolean
+  locked?: boolean
   onDelete?: (id: string) => void
   onAddReply: (commentId: string, body: string) => void
   onHover: (id: string | null) => void
@@ -671,7 +677,7 @@ function TruncatedBody({ html, plain }: { html?: string; plain?: string }) {
 }
 
 const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
-  comment, content: _content, top, highlighted, exiting, dimmed, skipAnimation, onDelete, onAddReply, onHover, onExpandChange,
+  comment, content: _content, top, highlighted, exiting, dimmed, skipAnimation, locked, onDelete, onAddReply, onHover, onExpandChange,
 }, ref) => {
   const [replyText, setReplyText] = useState("")
   const [expanded, setExpanded] = useState(false)
@@ -777,6 +783,7 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
           </div>
         ))}
       </div>
+      {!locked && (
       <div className="comment-reply-box">
         <textarea
           ref={inputRef}
@@ -802,6 +809,7 @@ const PreviewCommentPopover = forwardRef<HTMLDivElement, PreviewPopoverProps>(({
           </svg>
         </button>
       </div>
+      )}
     </div>
   )
 })

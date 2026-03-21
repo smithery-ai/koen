@@ -41,6 +41,8 @@ export interface EditorProps {
   activeCommentId?: string | null
   /** Show/hide comment UI */
   commentsVisible?: boolean
+  /** Show existing comments but hide pill + reply inputs (read-only discussion) */
+  commentsLocked?: boolean
   /** Theme */
   theme?: "dark" | "light"
   /** Extra CSS class on root */
