@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>engei — live editing demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; }
+    .toolbar { padding: 8px 16px; border-bottom: 1px solid #333; display: flex; gap: 8px; align-items: center; background: #1a1816; }
+    .toolbar button { padding: 4px 12px; border: 1px solid #444; border-radius: 4px; background: #2a2826; color: #e8e6e3; cursor: pointer; font-size: 13px; }
+    .toolbar button.active { background: #C15F3C; border-color: #C15F3C; }
+    .toolbar select { padding: 4px 8px; border: 1px solid #444; border-radius: 4px; background: #2a2826; color: #e8e6e3; font-size: 13px; }
+    #editor-root { flex: 1; min-height: 0; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="./main.tsx"></script>
+</body>
+</html>

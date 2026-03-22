@@ -2,6 +2,10 @@
 export { default as Editor } from "./Editor"
 export type { EditorHandle } from "./Editor"
 
+// Workspace — batteries-included editor experience
+export { default as Workspace } from "./Workspace"
+export type { WorkspaceProps, WorkspaceFile, DataProvider, WorkspaceEventType } from "./workspace-types"
+
 // File tree
 export { default as FileTree } from "./tree/FileTree"
 export type { TreeFile, FileTreeProps } from "./tree/FileTree"
@@ -16,8 +20,8 @@ export { createAnchor, resolveAnchor, resolveAnchors } from "./comments/anchorin
 // CM6 building blocks (for advanced consumers)
 export { commentField, setComments, addComment, removeComment, getCommentRanges } from "./comments/CommentDecoration"
 
-// Markdown utilities (for custom preview consumers)
-export { parseWithPositions, domRangeToSourceRange, wrapSourceRange, clearHighlights } from "./preview/markedPositions"
+// Markdown utilities moved to lazy MarkdownPreview chunk.
+// Import directly from "engei/preview" if needed.
 
 // Widget system (re-exported from engei-widgets)
 export {

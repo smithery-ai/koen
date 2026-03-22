@@ -8,10 +8,12 @@ import { useEffect, useRef, useCallback } from "react"
 import { EditorView, basicSetup } from "codemirror"
 import { EditorState, Compartment } from "@codemirror/state"
 import { buildSonoTheme, getSyntaxHighlighting } from "./theme"
-import { getLanguage } from "./languages"
+import { getLanguage, getLanguageAsync } from "./languages"
 import { commentField, setComments } from "../comments/CommentDecoration"
 import { resolveAnchor } from "../comments/anchoring"
+import { createLiveEditing } from "./live/liveEditing"
 import type { Comment } from "../types"
+import type { WidgetPlugin } from "engei-widgets"
 
 interface Props {
   content: string
@@ -19,6 +21,8 @@ interface Props {
   readOnly?: boolean
   isDark: boolean
   comments: Comment[]
+  liveMode?: boolean
+  widgets?: WidgetPlugin[]
   onChange?: (content: string) => void
   onViewReady?: (view: EditorView) => void
   onViewDestroy?: () => void
@@ -30,6 +34,8 @@ export default function CodeMirrorEditor({
   readOnly = false,
   isDark,
   comments,
+  liveMode = false,
+  widgets,
   onChange,
   onViewReady,
   onViewDestroy,
@@ -44,6 +50,7 @@ export default function CodeMirrorEditor({
   const readOnlyComp = useRef(new Compartment())
   const themeComp = useRef(new Compartment())
   const syntaxComp = useRef(new Compartment())
+  const langComp = useRef(new Compartment())
 
   // Create/destroy editor when filename changes (language requires rebuild)
   useEffect(() => {
@@ -57,9 +64,10 @@ export default function CodeMirrorEditor({
       syntaxComp.current.of(getSyntaxHighlighting(isDark)),
       EditorView.lineWrapping,
       EditorView.contentAttributes.of({ spellcheck: "false", autocorrect: "off", autocapitalize: "off" }),
-      ...getLanguage(filename),
+      langComp.current.of(getLanguage(filename)),
       commentField,
       readOnlyComp.current.of(EditorState.readOnly.of(readOnly)),
+      ...(liveMode ? [createLiveEditing(widgets, isDark ? "dark" : "light")] : []),
       EditorView.updateListener.of(update => {
         if (update.docChanged && !suppressChangeRef.current) {
           onChangeRef.current?.(update.state.doc.toString())
@@ -72,14 +80,23 @@ export default function CodeMirrorEditor({
     viewRef.current = view
     onViewReady?.(view)
 
+    // Async-load non-markdown languages into the compartment
+    if (getLanguage(filename).length === 0 && filename) {
+      getLanguageAsync(filename).then(lang => {
+        if (viewRef.current === view && lang.length > 0) {
+          view.dispatch({ effects: langComp.current.reconfigure(lang) })
+        }
+      })
+    }
+
     return () => {
       view.destroy()
       viewRef.current = null
       onViewDestroy?.()
     }
-    // Only rebuild on filename change (language requires new parser)
+    // Rebuild on filename change (language requires new parser) or liveMode toggle
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filename])
+  }, [filename, liveMode])
 
   // Reconfigure readOnly via compartment (no rebuild)
   useEffect(() => {
@@ -133,5 +150,5 @@ export default function CodeMirrorEditor({
     syncComments()
   }, [syncComments])
 
-  return <div ref={containerRef} className="koen-editor-cm" data-readonly={readOnly || undefined} />
+  return <div ref={containerRef} className={`koen-editor-cm${liveMode ? " koen-editor-live" : ""}`} data-readonly={readOnly || undefined} />
 }

@@ -5,11 +5,11 @@
 
 import { useState, useCallback, useRef, useImperativeHandle, forwardRef, lazy, Suspense } from "react"
 import type { EditorView } from "@codemirror/view"
-import MarkdownPreview from "./preview/MarkdownPreview"
 import { createAnchor } from "./comments/anchoring"
 import type { EditorProps } from "./types"
 
-// Lazy-load CodeMirror-dependent components — not needed for preview mode
+// Lazy-load mode-specific components
+const MarkdownPreview = lazy(() => import("./preview/MarkdownPreview"))
 const CodeMirrorEditor = lazy(() => import("./editor/CodeMirrorEditor"))
 const CommentPill = lazy(() => import("./comments/CommentPill"))
 const CommentMargin = lazy(() => import("./comments/CommentMargin"))
@@ -84,23 +84,28 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
     onActiveCommentChange?.(id)
   }, [onActiveCommentChange])
 
+  // Live mode: use CodeMirror with markdown language + live editing decorations
+  const isLive = mode === "live"
+
   if (mode === "preview") {
     return (
       <div className={`koen-editor ${className}`.trim()} data-theme={theme}>
-        <div className="editor-container preview-scroll">
-          <MarkdownPreview
-            content={content}
-            comments={comments}
-            commentsVisible={commentsVisible}
-            commentsLocked={commentsLocked}
-            theme={theme}
-            widgets={widgets}
-            onAddComment={handlePreviewAddComment}
-            onDeleteComment={onDeleteComment}
-            onAddReply={(commentId, body) => onAddReply?.(commentId, body)}
-            onLinkClick={onLinkClick}
-          />
-        </div>
+        <Suspense fallback={<div className="editor-container" />}>
+          <div className="editor-container preview-scroll">
+            <MarkdownPreview
+              content={content}
+              comments={comments}
+              commentsVisible={commentsVisible}
+              commentsLocked={commentsLocked}
+              theme={theme}
+              widgets={widgets}
+              onAddComment={handlePreviewAddComment}
+              onDeleteComment={onDeleteComment}
+              onAddReply={(commentId, body) => onAddReply?.(commentId, body)}
+              onLinkClick={onLinkClick}
+            />
+          </div>
+        </Suspense>
       </div>
     )
   }
@@ -112,10 +117,12 @@ export default forwardRef<EditorHandle, EditorProps>(function Editor({
           <div className="editor-container" style={{ position: "relative" }}>
             <CodeMirrorEditor
               content={content}
-              filename={filename}
+              filename={isLive ? "live.md" : filename}
               readOnly={readOnly}
               isDark={isDark}
               comments={comments}
+              liveMode={isLive}
+              widgets={isLive ? widgets : undefined}
               onChange={onChange}
               onViewReady={setView}
               onViewDestroy={() => setView(null)}

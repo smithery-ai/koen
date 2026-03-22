@@ -34,7 +34,7 @@ export interface EditorProps {
   /** Disable editing */
   readOnly?: boolean
   /** Source editor or rendered markdown */
-  mode?: "source" | "preview"
+  mode?: "source" | "preview" | "live"
   /** Comment data */
   comments?: Comment[]
   /** Currently focused comment */

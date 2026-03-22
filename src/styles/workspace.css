@@ -1,0 +1,219 @@
+/* ─── Workspace layout ────────────────────────────────────── */
+
+.engei-workspace {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100%;
+  overflow: hidden;
+  transition: grid-template-columns 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.engei-workspace.sidebar-collapsed {
+  grid-template-columns: 0fr 1fr;
+  transition: grid-template-columns 0.2s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────── */
+
+.workspace-sidebar {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid var(--widget-border, #333);
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-sidebar .koen-file-tree {
+  scrollbar-width: none;
+}
+
+.workspace-sidebar .koen-file-tree::-webkit-scrollbar {
+  display: none;
+}
+
+.workspace-sidebar > :not(.sidebar-header) {
+  width: 240px;
+}
+
+.engei-workspace.sidebar-collapsed .workspace-sidebar {
+  border-right-color: transparent;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 8px;
+  width: 240px;
+  box-sizing: border-box;
+}
+
+.sidebar-action,
+.workspace-action {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.12s ease, background 0.12s ease;
+}
+
+.sidebar-action:hover,
+.workspace-action:hover {
+  opacity: 1;
+  background: var(--hover-bg);
+}
+
+/* ─── Backdrop (mobile) ───────────────────────────────────── */
+
+.workspace-backdrop {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .engei-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 240px;
+    z-index: 100;
+    background: var(--sidebar-bg, var(--editor-bg));
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .workspace-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .workspace-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .workspace-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ─── Main area ───────────────────────────────────────────── */
+
+.workspace-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.workspace-header {
+  position: relative;
+  padding: 4px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 32px;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.12s ease;
+}
+
+.sidebar-toggle:hover { opacity: 1; }
+.sidebar-toggle.hidden { display: none; }
+
+/* ─── Breadcrumb ──────────────────────────────────────────── */
+
+.breadcrumb {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12.5px;
+  color: var(--editor-fg, #e8e6e3);
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
+.breadcrumb-link {
+  pointer-events: auto;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 3px;
+  margin: -1px -3px;
+  transition: opacity 0.12s ease, background 0.12s ease;
+}
+
+.breadcrumb-link:hover {
+  opacity: 1;
+  background: var(--hover-bg);
+}
+
+.breadcrumb-sep {
+  margin: 0 5px;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+/* ─── Editor area ─────────────────────────────────────────── */
+
+.workspace-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+.workspace-editor .cm-scroller {
+  padding-top: 8px;
+  padding-bottom: 32px;
+}
+
+.workspace-editor .cm-content {
+  padding-right: 48px;
+  max-width: calc(760px + 48px);
+}
+
+.workspace-editor .cm-gutters {
+  padding-left: 48px;
+}
+
+.workspace-editor .md-preview {
+  padding-top: 40px;
+}
+
+.workspace-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  opacity: 0.4;
+  font-size: 14px;
+}
