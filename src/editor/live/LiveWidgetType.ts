@@ -18,6 +18,10 @@ import type { WidgetPlugin, WidgetSpec } from "engei-widgets"
 // Cache parsed specs so we don't re-parse on every decoration rebuild
 const specCache = new Map<string, WidgetSpec>()
 
+// ─── DOM cache ──────────────────────────────────────────────
+// Cache hydrated DOM elements so viewport eviction doesn't re-hydrate
+const domCache = new Map<string, { el: HTMLElement, cleanup?: () => void }>()
+
 function getSpec(plugin: WidgetPlugin, code: string, position: number): WidgetSpec | null {
   const key = `${plugin.type}:${code}`
   const cached = specCache.get(key)
@@ -75,6 +79,15 @@ export class LiveWidgetType extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
+    const cacheKey = `${this.plugin.type}:${this.codeHash}:${this.theme}`
+
+    // Return cached DOM if available (viewport eviction re-entry)
+    const cached = domCache.get(cacheKey)
+    if (cached) {
+      this.cleanup = cached.cleanup || null
+      return cached.el
+    }
+
     const container = document.createElement("div")
     container.className = "cm-live-widget"
     container.setAttribute("data-widget-type", this.plugin.type)
@@ -90,9 +103,9 @@ export class LiveWidgetType extends WidgetType {
     // Defer hydration — don't block LCP with CDN script loads
     const hydrate = () => {
       const result = this.plugin.hydrate(container, spec, this.theme)
-      if (typeof result === "function") {
-        this.cleanup = result
-      }
+      const cleanup = typeof result === "function" ? result : undefined
+      this.cleanup = cleanup || null
+      domCache.set(cacheKey, { el: container, cleanup })
       requestAnimationFrame(() => view.requestMeasure())
     }
 
@@ -133,11 +146,10 @@ export class LiveWidgetType extends WidgetType {
     return 200 // reasonable default for charts/diagrams
   }
 
-  destroy(dom: HTMLElement): void {
-    if (this.cleanup) {
-      this.cleanup()
-      this.cleanup = null
-    }
+  destroy(_dom: HTMLElement): void {
+    // Don't cleanup — DOM is cached for viewport re-entry.
+    // Cleanup only happens when the code content changes
+    // (cache eviction via different codeHash).
   }
 
   ignoreEvent(): boolean {
