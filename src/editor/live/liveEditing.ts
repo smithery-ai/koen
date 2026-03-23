@@ -315,8 +315,12 @@ export function createLiveEditing(
       return buildDecorations(state, widgetLangs, theme)
     },
     update(prev, tr) {
-      // No cursor-reveal means we only rebuild on doc changes
-      if (!tr.docChanged) return prev
+      // Rebuild on doc changes OR when the incremental parser extends coverage
+      if (!tr.docChanged) {
+        const oldTree = syntaxTree(tr.startState)
+        const newTree = syntaxTree(tr.state)
+        if (oldTree === newTree) return prev
+      }
       return buildDecorations(tr.state, widgetLangs, theme)
     },
     provide: (f) => [

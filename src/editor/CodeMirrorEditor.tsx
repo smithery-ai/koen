@@ -94,9 +94,10 @@ export default function CodeMirrorEditor({
       viewRef.current = null
       onViewDestroy?.()
     }
-    // Rebuild on filename change (language requires new parser) or liveMode toggle
+    // Rebuild on filename change (language requires new parser), liveMode toggle,
+    // or theme change in live mode (widgets bake theme colors into DOM)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filename, liveMode])
+  }, [filename, liveMode, liveMode && isDark])
 
   // Reconfigure readOnly via compartment (no rebuild)
   useEffect(() => {

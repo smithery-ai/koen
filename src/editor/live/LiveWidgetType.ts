@@ -23,7 +23,7 @@ const specCache = new Map<string, WidgetSpec>()
 const domCache = new Map<string, { el: HTMLElement, cleanup?: () => void }>()
 
 function getSpec(plugin: WidgetPlugin, code: string, position: number): WidgetSpec | null {
-  const key = `${plugin.type}:${code}`
+  const key = `${plugin.type}:${position}:${code}`
   const cached = specCache.get(key)
   if (cached) return cached
 
